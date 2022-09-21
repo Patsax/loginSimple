@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
+const methodOverride = require("method-override");
 
 const initializePassport = require("./passport-config");
 initializePassport(
@@ -30,6 +31,7 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(methodOverride("_method"));
 
 app.get("/", checkAuthenticated, (req, res) => {
 	res.render("index.ejs", { name: req.user.name });
@@ -41,7 +43,7 @@ app.get("/login", checkNotAuthenticated, (req, res) => {
 
 app.post(
 	"/login",
-    checkNotAuthenticated,
+	checkNotAuthenticated,
 	passport.authenticate("local", {
 		successRedirect: "/",
 		failureRedirect: "/login",
@@ -68,6 +70,11 @@ app.post("/register", checkNotAuthenticated, async (req, res) => {
 	}
 });
 
+app.delete("/logout", (req, res) => {
+	req.logOut();
+	res.redirect("/login");
+});
+
 function checkAuthenticated(req, res, next) {
 	if (req.isAuthenticated()) {
 		return next();
@@ -77,10 +84,10 @@ function checkAuthenticated(req, res, next) {
 }
 
 function checkNotAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-		return res.redirect('/');
+	if (req.isAuthenticated()) {
+		return res.redirect("/");
 	}
-    next()
+	next();
 }
 
 app.listen(3000);
